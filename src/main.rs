@@ -1,15 +1,9 @@
 use std::env;
-use std::io;
+
+mod util;
 
 mod generators;
 use generators::*;
-
-fn lines<T: io::BufRead + std::fmt::Debug>(buf: T) -> Vec<String> {
-    let desc = format!("{:?}", buf);
-    buf.lines()
-        .map(|x| x.expect(&format!("{:?}", desc)))
-        .collect()
-}
 
 fn main() {
     let mut args = env::args().skip(1).collect::<Vec<_>>();

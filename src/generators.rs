@@ -1,4 +1,4 @@
-use crate::lines;
+use crate::util::lines;
 use rand::Rng;
 use std::fmt::Display;
 pub use std::iter::FromIterator;
