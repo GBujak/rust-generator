@@ -2,6 +2,7 @@ use crate::lines;
 use rand::Rng;
 use std::fmt::Display;
 pub use std::iter::FromIterator;
+use std::fmt::Write;
 
 pub trait Generator {
     fn next(&mut self) -> &dyn Display;
@@ -58,19 +59,36 @@ impl Generator for FileGenerator {
     }
 }
 
+pub struct DateGenerator {
+    val: String,
+}
+
+impl DateGenerator {
+    pub fn new() -> Self {
+        Self { val: "".into() }
+    }
+}
+
+impl Generator for DateGenerator {
+    fn next(&mut self) -> &dyn Display {
+        let (day, month, year) = (
+            rand::thread_rng().gen_range(0, 26),
+            rand::thread_rng().gen_range(0, 13),
+            rand::thread_rng().gen_range(1990, 2020),
+        );
+        self.val = format!("{}-{}-{}", year, month, day);
+        &self.val
+    }
+}
+
 pub struct GeneratorVector {
     gens: Vec<Box<dyn Generator>>,
 }
 
 impl GeneratorVector {
     pub fn next_line(&mut self) -> String {
-        let mut ret = self
-            .gens
-            .iter_mut()
-            .map(|x| format!("{}", x.next()))
-            .collect::<Vec<_>>()
-            .join(",");
-        ret.push(',');
+        let mut ret = String::new();
+        for x in &mut self.gens { write!(ret, "{},", x.next()).unwrap() }
         ret
     }
 }
@@ -81,6 +99,8 @@ impl<'a> FromIterator<&'a str> for GeneratorVector {
         for i in iter {
             if i.contains("-") {
                 ret.gens.push(Box::new(RangeGenerator::new_from_format(i)));
+            } else if i == "date" {
+                ret.gens.push(Box::new(DateGenerator::new()))
             } else {
                 ret.gens.push(Box::new(FileGenerator::new(i)));
             };
