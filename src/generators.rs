@@ -1,13 +1,32 @@
 use crate::util::lines;
 use rand::Rng;
 use std::fmt::Display;
-pub use std::iter::FromIterator;
 use std::fmt::Write;
+pub use std::iter::FromIterator;
 
 pub trait Generator {
     fn next(&mut self) -> &dyn Display;
 }
 
+// Generuje kolejne liczby całkowite
+pub struct IdGenerator {
+    val: u128,
+}
+
+impl IdGenerator {
+    pub fn new() -> Self {
+        Self { val: 0 }
+    }
+}
+
+impl Generator for IdGenerator {
+    fn next(&mut self) -> &dyn Display {
+        self.val += 1;
+        &self.val
+    }
+}
+
+// Generuje losowe liczby z przedziału
 pub struct RangeGenerator {
     range: (i32, i32),
     val: i32,
@@ -38,6 +57,7 @@ impl Generator for RangeGenerator {
     }
 }
 
+// Generuje losowe linie z pliku tekstowego
 pub struct FileGenerator {
     lines: Vec<String>,
 }
@@ -59,6 +79,7 @@ impl Generator for FileGenerator {
     }
 }
 
+// Generuje losową datę w formacie YYYY-MM-DD
 pub struct DateGenerator {
     val: String,
 }
@@ -88,22 +109,24 @@ pub struct GeneratorVector {
 impl GeneratorVector {
     pub fn next_line(&mut self) -> String {
         let mut ret = String::new();
-        for x in &mut self.gens { write!(ret, "{},", x.next()).unwrap() }
+        for x in &mut self.gens {
+            write!(ret, "{},", x.next()).unwrap()
+        }
         ret
     }
 }
 
+// Dzięki tej implementacji działa Iterator::collect::<GeneratorVector>
 impl<'a> FromIterator<&'a str> for GeneratorVector {
     fn from_iter<I: IntoIterator<Item = &'a str>>(iter: I) -> Self {
         let mut ret = Self { gens: Vec::new() };
         for i in iter {
-            if i.contains("-") {
-                ret.gens.push(Box::new(RangeGenerator::new_from_format(i)));
-            } else if i == "date" {
-                ret.gens.push(Box::new(DateGenerator::new()))
-            } else {
-                ret.gens.push(Box::new(FileGenerator::new(i)));
-            };
+            match i {
+                "id" => ret.gens.push(Box::new(IdGenerator::new())),
+                "date" => ret.gens.push(Box::new(DateGenerator::new())),
+                f if f.contains("-") => ret.gens.push(Box::new(RangeGenerator::new_from_format(f))),
+                f => ret.gens.push(Box::new(FileGenerator::new(f))),
+            }
         }
         ret
     }
