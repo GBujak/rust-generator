@@ -1,8 +1,7 @@
 use std::io;
 
-pub fn lines<T: io::BufRead + std::fmt::Debug>(buf: T) -> Vec<String> {
-    let desc = format!("{:?}", buf);
+pub fn lines<T: io::BufRead>(buf: T) -> Vec<String> {
     buf.lines()
-        .map(|x| x.expect(&format!("{:?}", desc)))
+        .map(|x| x.unwrap_or_else(|err| panic!("{:?}", err)))
         .collect()
 }

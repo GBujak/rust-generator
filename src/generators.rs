@@ -41,7 +41,7 @@ impl RangeGenerator {
     }
     pub fn new_from_format(format: &str) -> Self {
         let split = format
-            .split("-")
+            .split('-')
             .map(|x| x.parse::<i32>().expect("can't parse range format"))
             .collect::<Vec<i32>>();
         assert_eq!(split.len(), 2);
@@ -124,7 +124,7 @@ impl<'a> FromIterator<&'a str> for GeneratorVector {
             match i {
                 "id" => ret.gens.push(Box::new(IdGenerator::new())),
                 "date" => ret.gens.push(Box::new(DateGenerator::new())),
-                f if f.contains("-") => ret.gens.push(Box::new(RangeGenerator::new_from_format(f))),
+                f if f.contains('-') => ret.gens.push(Box::new(RangeGenerator::new_from_format(f))),
                 f => ret.gens.push(Box::new(FileGenerator::new(f))),
             }
         }
